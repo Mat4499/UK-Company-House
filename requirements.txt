@@ -1,0 +1,6 @@
+requests
+schedule
+python-dotenv
+pytz
+email-validator
+python-dotenv
