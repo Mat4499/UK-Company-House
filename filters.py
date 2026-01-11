@@ -10,7 +10,7 @@ def has_foreign_director(officers):
     foreign_countries = []
     for officer in officers:
         country = officer.get("address", {}).get("country")
-        if country and country != "United Kingdom" and country not in foreign_countries:
+        if country and country not in ["United Kingdom", "England"] and country not in foreign_countries:
             foreign_countries.append(country)
     return foreign_countries if foreign_countries else None
 
