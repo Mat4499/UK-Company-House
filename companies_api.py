@@ -30,7 +30,11 @@ def get_newly_formed_companies(date_str=None):
         )
 
         if response.status_code != 200:
-            print(f"❌ Failed to fetch companies (status {response.status_code})")
+            # If we already have some companies, this might just mean we've reached the end
+            if all_companies and response.status_code in [500, 416]:
+                print(f"⚠️  API returned {response.status_code} - likely reached end of results")
+            else:
+                print(f"❌ Failed to fetch companies (status {response.status_code})")
             break
 
         data = response.json()
@@ -55,10 +59,24 @@ def get_company_details(company_number):
 def get_officers(company_number):
     url = f"{BASE_URL}/company/{company_number}/officers"
     r = requests.get(url, auth=(API_KEY, ""))
-    return r.json().get("items", [])
+    if r.status_code != 200:
+        print(f"⚠️ Failed to fetch officers for {company_number} (status {r.status_code})")
+        return []
+    try:
+        return r.json().get("items", [])
+    except Exception as e:
+        print(f"⚠️ Error parsing officers JSON for {company_number}: {e}")
+        return []
 
 
 def get_ownership(company_number):
     url = f"{BASE_URL}/company/{company_number}/persons-with-significant-control"
     r = requests.get(url, auth=(API_KEY, ""))
-    return r.json().get("items", [])
+    if r.status_code != 200:
+        print(f"⚠️ Failed to fetch ownership for {company_number} (status {r.status_code})")
+        return []
+    try:
+        return r.json().get("items", [])
+    except Exception as e:
+        print(f"⚠️ Error parsing ownership JSON for {company_number}: {e}")
+        return []

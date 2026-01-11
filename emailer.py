@@ -1,32 +1,52 @@
-import smtplib
-import pandas as pd
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
-from config import SMTP_USER, SMTP_PASSWORD, RECEIVER_EMAIL
 import os
+import resend
+import pandas as pd
+import base64
+from io import BytesIO
+from dotenv import load_dotenv
 
-def send_email_with_attachment(subject, results, filename="report.csv"):
+# Load environment variables
+load_dotenv()
+
+# Configure Resend
+resend.api_key = os.getenv("RESEND_API_KEY")
+SENDER_EMAIL = os.getenv("SENDER_EMAIL", "onboarding@resend.dev")
+RECEIVER_EMAIL = os.getenv("RECEIVER_EMAIL") or os.getenv("RECIPIENT_EMAIL")
+
+def send_email_with_attachment(subject, results, filename="companies_report.csv"):
+    """Send email with CSV attachment using Resend API (works on Railway/Render)"""
+    
+    if not resend.api_key:
+        raise ValueError("RESEND_API_KEY environment variable not set")
+    
+    if not RECEIVER_EMAIL:
+        raise ValueError("RECEIVER_EMAIL or RECIPIENT_EMAIL environment variable not set")
+    
+    # Generate CSV in memory
     df = pd.DataFrame(results, columns=["Date", "Company Name", "Company Number", "URL"])
-    df.to_csv(filename, index=False)
-
-    msg = MIMEMultipart()
-    msg["From"] = SMTP_USER
-    msg["To"] = RECEIVER_EMAIL
-    msg["Subject"] = subject
-
-    msg.attach(MIMEText("See attached report.", "plain"))
-
-    part = MIMEBase("application", "octet-stream")
-    with open(filename, "rb") as f:
-        part.set_payload(f.read())
-    encoders.encode_base64(part)
-    part.add_header("Content-Disposition", f"attachment; filename= {filename}")
-    msg.attach(part)
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(SMTP_USER, SMTP_PASSWORD)
-        server.send_message(msg)
-
-    os.remove(filename)
+    csv_buffer = BytesIO()
+    df.to_csv(csv_buffer, index=False)
+    csv_bytes = csv_buffer.getvalue()
+    
+    # Convert to base64 string (required by Resend)
+    csv_base64 = base64.b64encode(csv_bytes).decode('utf-8')
+    
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [RECEIVER_EMAIL],
+            "subject": subject,
+            "html": f"<p>Please find attached the Companies House report with <strong>{len(results)} matching companies</strong>.</p>",
+            "attachments": [{
+                "filename": filename,
+                "content": csv_base64
+            }]
+        }
+        
+        response = resend.Emails.send(params)
+        print(f"✅ Email sent via Resend! ID: {response['id']}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Failed to send email via Resend: {e}")
+        raise

@@ -1,0 +1,30 @@
+# Documentation
+_docs
+_docs/
+
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Data files
+data/processed.json
+*.csv
+report.csv
+
+# IDE
+.vscode/
+.idea/
+
+# Test files
+test_*.py
+
+# Old backup files
+*_old.py
+emailer_smtp_old.py

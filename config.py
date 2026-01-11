@@ -3,13 +3,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv("API_KEY")
-SMTP_USER = os.getenv("SMTP_USER")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-RECEIVER_EMAIL = os.getenv("RECEIVER_EMAIL")
+# Companies House API
+API_KEY = os.getenv("API_KEY") or os.getenv("COMPANIES_HOUSE_API_KEY")
 
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 465
-
+# Filter keywords
 KEYWORDS = ["bidco", "midco", "topco", "propco", "holdco", "opco", "holdings", "spv", "uk"]
+
+# Business hours (UK time)
 WORK_HOURS = range(7, 18)  # 7am–6pm UK time
