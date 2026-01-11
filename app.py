@@ -24,13 +24,15 @@ def run_report():
         officers = get_officers(num)
         ownerships = get_ownership(num)
 
-        if meets_criteria(company, officers, ownerships):
-            print(f"✅ Match: {company['company_name']}")
+        meets, reason = meets_criteria(company, officers, ownerships)
+        if meets:
+            print(f"✅ Match: {company['company_name']} - {reason}")
             results.append([
                 company["date_of_creation"],
                 company["company_name"],
                 num,
-                f"https://find-and-update.company-information.service.gov.uk/company/{num}"
+                f"https://find-and-update.company-information.service.gov.uk/company/{num}",
+                reason
             ])
             seen.add(num)
 

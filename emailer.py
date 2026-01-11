@@ -23,7 +23,7 @@ def send_email_with_attachment(subject, results, filename="companies_report.csv"
         raise ValueError("RECEIVER_EMAIL or RECIPIENT_EMAIL environment variable not set")
     
     # Generate CSV in memory
-    df = pd.DataFrame(results, columns=["Date", "Company Name", "Company Number", "URL"])
+    df = pd.DataFrame(results, columns=["Date", "Company Name", "Company Number", "URL", "Selection Reason"])
     csv_buffer = BytesIO()
     df.to_csv(csv_buffer, index=False)
     csv_bytes = csv_buffer.getvalue()
