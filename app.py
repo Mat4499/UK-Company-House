@@ -4,15 +4,33 @@ from emailer import send_email_with_attachment
 from utils import get_current_uk_hour, load_previous, save_processed
 from datetime import datetime
 
-def run_report():
-    if get_current_uk_hour() not in range(7, 18):
+# ===== TEST CONFIGURATION =====
+# Set to True to enable test mode (bypasses business hours check, uses test date)
+TEST_MODE = False
+TEST_DATE = None  # Date to use in test mode
+MAX_COMPANIES = 300  # Maximum companies to fetch in test mode (limits first page)
+# ==============================
+
+def run_report(test_date=None):
+    # Apply test mode configuration
+    if TEST_MODE:
+        print("🧪 TEST MODE ENABLED")
+        date_to_fetch = test_date or TEST_DATE
+        limit_to_max = MAX_COMPANIES
+        bypass_business_hours = True
+    else:
+        print("🚀 PRODUCTION MODE")
+        date_to_fetch = test_date or None
+        limit_to_max = None
+        bypass_business_hours = False
+    
+    # Check business hours (skip if bypass enabled)
+    if not bypass_business_hours and get_current_uk_hour() not in range(7, 18):
         print("⏰ Outside business hours (7 AM - 6 PM UK)")
         return
 
     print("🚀 Running hourly report...")
-    # Set to True for faster testing, False for production
-    TEST_MODE = False
-    companies = get_newly_formed_companies(limit_first_page_only=TEST_MODE)
+    companies = get_newly_formed_companies(date_str=date_to_fetch, max_companies=limit_to_max)
     print(f"🔍 Fetched {len(companies)} companies")
 
     seen = load_previous()
@@ -77,4 +95,8 @@ def run_report():
         print("⚠️ No matching companies found.")
 
 if __name__ == "__main__":
-    run_report()
+    import sys
+    # Optional: pass a date as argument for testing
+    # Usage: python app.py 2026-01-13
+    test_date = sys.argv[1] if len(sys.argv) > 1 else None
+    run_report(test_date=test_date)

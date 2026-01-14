@@ -10,13 +10,13 @@ BASE_URL = "https://api.company-information.service.gov.uk"
 # Using 0.6 seconds to stay safely under the limit with some buffer
 REQUEST_DELAY = 0.6  # seconds between requests
 
-def get_newly_formed_companies(date_str=None, limit_first_page_only=False):
+def get_newly_formed_companies(date_str=None, max_companies=None):
     """
     Fetch all companies formed on the given date (default: today), using pagination.
     
     Args:
         date_str: Date string in YYYY-MM-DD format (default: today)
-        limit_first_page_only: If True, only fetch first page (useful for testing)
+        max_companies: If set, limit total companies returned to this number (for faster testing)
     """
     if not date_str:
         date_str = datetime.today().strftime("%Y-%m-%d")
@@ -55,9 +55,10 @@ def get_newly_formed_companies(date_str=None, limit_first_page_only=False):
         print(f"📦 Fetched {len(items)} companies from index {start}")
         all_companies.extend(items)
         
-        # Stop after first page if testing mode enabled
-        if limit_first_page_only:
-            print(f"⚠️  TEST MODE: Limited to first page only ({len(all_companies)} companies)")
+        # Check if we've reached max_companies limit
+        if max_companies and len(all_companies) >= max_companies:
+            all_companies = all_companies[:max_companies]
+            print(f"⚠️  Limited to {max_companies} companies")
             break
         
         start += page_size
